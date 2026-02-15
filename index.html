@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mabi Cibao | Control de Operaciones</title>
@@ -19,6 +19,21 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             margin: 0; background: var(--bg); color: #292524;
             display: flex; flex-direction: column; height: 100vh; 
+        }
+
+        /* MARCA DE AGUA - Ahora dentro de style */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url('favicon.png'); 
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 40%;
+            opacity: 0.05;
+            z-index: -1;
+            pointer-events: none;
         }
 
         /* --- HEADER CORPORATIVO --- */
@@ -43,14 +58,12 @@
         main { flex: 1; padding: 30px; overflow-y: auto; }
         .container { max-width: 1100px; margin: 0 auto; }
 
-        /* KPI rápido: Meta 100 Huacales */
         .goal-banner {
             background: linear-gradient(90deg, #78350f 0%, #d97706 100%);
             color: white; border-radius: 15px; padding: 20px; margin-bottom: 30px;
             display: flex; justify-content: space-between; align-items: center;
         }
 
-        /* --- GRID DE ACTIVOS --- */
         .assets-grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
@@ -82,16 +95,14 @@
         .btn-edit { background: var(--mabi-amber); color: white; border: none; }
         .btn-edit:hover { background: #b45309; }
 
-        /* MODAL */
         #viewer { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:2000; padding:20px; }
         .viewer-content { background:white; width:100%; height:100%; border-radius:15px; overflow:hidden; position:relative; }
     </style>
 </head>
 <body>
-
     <header>
         <div class="brand">
-            <i data-lucide="wine"></i> MABÍ CIBAO <span>M&M EMPRENDIMIENTO</span>
+          <img src="favicon.png" alt="Logo" style="height: 30px; width: auto; margin-right: 8px;"> MABÍ CIBAO <span>UNA EMPRESA M&M</span>
         </div>
         <div style="flex:1"></div>
         <div class="nav-item"><i data-lucide="layout-dashboard" size="18" style="margin-right:8px"></i> Dashboard</div>
@@ -101,7 +112,6 @@
 
     <main>
         <div class="container">
-            <!-- Meta del Trimestre -->
             <div class="goal-banner">
                 <div>
                     <h2 style="margin:0; font-size: 1.5rem;">Meta: 100 Huacales/Semana</h2>
@@ -116,9 +126,7 @@
                 </div>
             </div>
 
-            <div class="assets-grid" id="assets-container">
-                <!-- Se carga vía JS -->
-            </div>
+            <div class="assets-grid" id="assets-container"></div>
         </div>
     </main>
 
@@ -130,36 +138,11 @@
     </div>
 
     <script>
-        // Configura aquí los enlaces de tus Google Sheets
         const ASSETS = [
-            {
-                title: "Calculadora de Producción",
-                desc: "Costos de materia prima, azúcar, botellas y fermentación por lote.",
-                icon: "beaker",
-                view: "https://docs.google.com",
-                edit: "https://docs.google.com"
-            },
-            {
-                title: "Control de Ventas y Huacales",
-                desc: "Seguimiento semanal para alcanzar la meta de los 100 huacales.",
-                icon: "trending-up",
-                view: "https://docs.google.com",
-                edit: "https://docs.google.com"
-            },
-            {
-                title: "Ganancias y Activos",
-                desc: "Balance de ingresos, egresos y activos fijos de M&M.",
-                icon: "dollar-sign",
-                view: "https://docs.google.com",
-                edit: "https://docs.google.com"
-            },
-            {
-                title: "Inventario de Insumos",
-                desc: "Stock de envases, etiquetas y tapones.",
-                icon: "clipboard-list",
-                view: "https://docs.google.com",
-                edit: "https://docs.google.com"
-            }
+            { title: "Calculadora de Producción", desc: "Costos de materia prima, azúcar, botellas y fermentación por lote.", icon: "beaker", view: "#", edit: "#" },
+            { title: "Control de Ventas y Huacales", desc: "Seguimiento semanal para alcanzar la meta de los 100 huacales.", icon: "trending-up", view: "#", edit: "#" },
+            { title: "Ganancias y Activos", desc: "Balance de ingresos, egresos y activos fijos de M&M.", icon: "dollar-sign", view: "#", edit: "#" },
+            { title: "Inventario de Insumos", desc: "Stock de envases, etiquetas y tapones.", icon: "clipboard-list", view: "#", edit: "#" }
         ];
 
         function renderAssets() {
@@ -172,32 +155,12 @@
                     </div>
                     <p class="asset-desc">${asset.desc}</p>
                     <div class="button-group">
-                        <button class="btn btn-view" onclick="openViewer('${asset.view}')">
-                            <i data-lucide="eye" size="16"></i> Ver
-                        </button>
-                        <a href="${asset.edit}" target="_blank" class="btn btn-edit">
-                            <i data-lucide="edit-3" size="16"></i> Editar
-                        </a>
+                        <a href="${asset.view}" class="btn btn-view">Ver</a>
+                        <a href="${asset.edit}" class="btn btn-edit">Editar</a>
                     </div>
-                </div>
-            `).join('');
+                </div>`).join('');
             lucide.createIcons();
         }
-
-        function openViewer(url) {
-            document.getElementById('iframe').src = url;
-            document.getElementById('viewer').style.display = 'block';
-        }
-
-        function closeViewer() {
-            document.getElementById('viewer').style.display = 'none';
-            document.getElementById('iframe').src = '';
-        }
-
-        document.getElementById('themeColor').addEventListener('input', (e) => {
-            document.documentElement.style.setProperty('--mabi-amber', e.target.value);
-        });
-
         renderAssets();
     </script>
 </body>
