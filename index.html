@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mabi Cibao | Control de Operaciones</title>
-    <script src="https://unpkg.com"></script>
     <style>
         :root {
             --mabi-amber: #d97706; /* Color miel/mabí */
@@ -105,8 +104,13 @@
           <img src="favicon.png" alt="Logo" style="height: 30px; width: auto; margin-right: 8px;"> MABÍ CIBAO <span>UNA EMPRESA M&M</span>
         </div>
         <div style="flex:1"></div>
+
         <div class="nav-item"><i data-lucide="layout-dashboard" size="18" style="margin-right:8px"></i> Dashboard</div>
         <div class="nav-item"><i data-lucide="truck" size="18" style="margin-right:8px"></i> Logística</div>
+        <div class="nav-item" onclick="mostrarSeccion('pedidos')">
+            <i data-lucide="shopping-cart" size="18" style="margin-right:8px"></i> Hacer Pedido
+        </div>
+
         <input type="color" id="themeColor" value="#d97706" style="margin-left:20px; cursor:pointer">
     </header>
 
@@ -126,6 +130,23 @@
                 </div>
             </div>
 
+            <section id="seccion-pedidos" style="display:none; margin-top: 20px;">
+                <div class="asset-card" style="max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 class="asset-title" style="color: var(--mabi-dark);"><i data-lucide="file-text"></i> Nuevo Pedido</h3>
+                    <div style="margin-top:15px">
+                        <label style="display:block; font-size:0.8rem; font-weight:bold; margin-bottom:5px">Nombre del Cliente:</label>
+                        <input type="text" id="order-client" placeholder="Ej: Colmado La Esperanza" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); margin-bottom:15px; box-sizing: border-box;">
+                        
+                        <label style="display:block; font-size:0.8rem; font-weight:bold; margin-bottom:5px">Cantidad (Huacales):</label>
+                        <input type="number" id="order-qty" value="1" min="1" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); box-sizing: border-box;">
+                        
+                        <button class="btn btn-edit" style="width:100%; margin-top:20px; padding:12px; cursor:pointer;" onclick="processOrder()">
+                            <i data-lucide="printer" size="16"></i> Generar Factura M&M
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <div class="assets-grid" id="assets-container"></div>
         </div>
     </main>
@@ -136,6 +157,9 @@
             <iframe id="iframe" width="100%" height="100%" frameborder="0"></iframe>
         </div>
     </div>
+
+    <!-- Cargar lucide desde CDN correctamente -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.244.0/dist/lucide.min.js"></script>
 
     <script>
         const ASSETS = [
@@ -159,9 +183,117 @@
                         <a href="${asset.edit}" class="btn btn-edit">Editar</a>
                     </div>
                 </div>`).join('');
-            lucide.createIcons();
+            if (window.lucide && typeof lucide.createIcons === 'function') {
+                lucide.createIcons();
+            }
         }
         renderAssets();
+        // --- LÓGICA DE NEGOCIO MABI CIBAO ---
+
+        function mostrarSeccion(tipo) {
+            const dashboard = document.getElementById('assets-container');
+            const banner = document.querySelector('.goal-banner');
+            const pedidos = document.getElementById('seccion-pedidos');
+
+            if (tipo === 'pedidos') {
+                if (dashboard) dashboard.style.display = 'none';
+                if (banner) banner.style.display = 'none';
+                pedidos.style.display = 'block';
+            } else {
+                location.reload();
+            }
+        }
+
+        function processOrder() {
+            const clienteRaw = document.getElementById('order-client').value || '';
+            const cantidad = parseInt(document.getElementById('order-qty').value, 10) || 0;
+            const precioUnitario = 1200;
+
+            if (!clienteRaw.trim()) {
+                alert("Por favor, ingresa el nombre del cliente para la factura.");
+                return;
+            }
+            if (cantidad <= 0) {
+                alert("La cantidad debe ser mayor que 0.");
+                return;
+            }
+
+            const cliente = clienteRaw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            const total = cantidad * precioUnitario;
+            const fecha = new Date().toLocaleDateString('es-DO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const numFactura = Math.floor(Math.random() * 1000).toString().padStart(4, '0');
+
+            const win = window.open('', '_blank');
+            if (!win) {
+                alert('El navegador bloqueó la ventana emergente. Permite popups para generar la factura.');
+                return;
+            }
+
+            win.document.write(`
+                <html>
+                <head>
+                    <title>Factura M&M - ${cliente}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #333; line-height: 1.6; }
+                        .header { border-bottom: 3px solid #d97706; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+                        .mabi-brand { color: #451a03; margin: 0; }
+                        .factura-info { text-align: right; }
+                        table { width: 100%; border-collapse: collapse; margin: 30px 0; }
+                        th { background: #fef3c7; padding: 12px; border: 1px solid #e7e5e4; text-align: left; }
+                        td { padding: 12px; border: 1px solid #e7e5e4; }
+                        .total-box { text-align: right; font-size: 1.4rem; font-weight: bold; color: #b45309; margin-top: 20px; }
+                        .footer { margin-top: 60px; text-align: center; border-top: 1px dashed #ccc; padding-top: 20px; font-style: italic; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div>
+                            <h1 class="mabi-brand">MABÍ CIBAO</h1>
+                            <p>M&M Emprendimiento Artesanal<br>Santiago, República Dominicana</p>
+                        </div>
+                        <div class="factura-info">
+                            <h2 style="margin:0; color:#d97706;">FACTURA</h2>
+                            <p>No. #MC-${numFactura}<br>${fecha}</p>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <strong>CLIENTE:</strong> ${cliente}
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Descripción del Producto</th>
+                                <th>Cant.</th>
+                                <th>Precio Unit.</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Huacal de Mabí Artesanal (12 botellas)</td>
+                                <td>${cantidad}</td>
+                                <td>RD$ ${precioUnitario.toLocaleString()}</td>
+                                <td>RD$ ${total.toLocaleString()}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="total-box">
+                        TOTAL A PAGAR: RD$ ${total.toLocaleString()}
+                    </div>
+
+                    <div class="footer">
+                        <p>¡Gracias por apoyar lo artesanal y local!</p>
+                        <p>Mabí Cibao - Frescura de nuestra tierra.</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            win.document.close();
+            win.print();
+        }
     </script>
 </body>
 </html>
