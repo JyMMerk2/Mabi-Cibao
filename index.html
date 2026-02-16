@@ -3,159 +3,182 @@
 <head>
     <link rel="icon" type="image/png" href="favicon.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Mabi Cibao | Control de Operaciones</title>
     <style>
-        :root {
-            --mabi-amber: #d97706; /* Color miel/mabí */
-            --mabi-dark: #451a03;
-            --bg: #fffcf2;
-            --card: #ffffff;
-            --border: #e7e5e4;
-        }
-        
-        body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            margin: 0; background: var(--bg); color: #292524;
-            display: flex; flex-direction: column; height: 100vh; 
+        :root{
+            --mabi-amber:#d97706;
+            --mabi-dark:#451a03;
+            --bg:#fffcf2;
+            --card:#ffffff;
+            --border:#e7e5e4;
+            --gap:20px;
         }
 
-        /* MARCA DE AGUA - Ahora dentro de style */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-image: url('favicon.png'); 
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: 40%;
-            opacity: 0.05;
-            z-index: -1;
-            pointer-events: none;
+        /* Base */
+        *{box-sizing:border-box}
+        body{
+            font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin:0; background:var(--bg); color:#292524;
+            display:flex; flex-direction:column; min-height:100vh;
         }
 
-        /* --- HEADER CORPORATIVO --- */
-        header { 
-            background: var(--mabi-dark); 
-            display: flex; align-items: center; 
-            padding: 0 25px; height: 60px; color: #fef3c7;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        /* Marca de agua */
+        body::before{
+            content:""; position:fixed; inset:0;
+            background-image:url('favicon.png'); background-repeat:no-repeat;
+            background-position:center; background-size:40%;
+            opacity:0.05; z-index:-1; pointer-events:none;
         }
 
-        .brand { font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; letter-spacing: 1px; }
-        .brand span { color: var(--mabi-amber); font-size: 0.8rem; border-left: 1px solid #78350f; padding-left: 10px; margin-left: 5px; }
-
-        .nav-item {
-            height: 100%; display: flex; align-items: center;
-            padding: 0 20px; cursor: pointer; font-size: 0.9rem; font-weight: 500;
-            transition: all 0.3s;
+        /* Header */
+        header{
+            background:var(--mabi-dark); display:flex; align-items:center;
+            padding:0 20px; height:60px; color:#fef3c7; gap:12px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
         }
-        .nav-item:hover { background: rgba(217, 119, 6, 0.2); color: var(--mabi-amber); }
+        .brand{ font-weight:800; display:flex; align-items:center; gap:10px; font-size:1.05rem; }
+        .brand img{ height:30px; width:auto; display:block; }
+        nav{ display:flex; align-items:center; gap:8px; margin-left:auto; }
+        .nav-item{ padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:500; font-size:0.95rem; color:inherit; display:flex; align-items:center; gap:8px; }
+        .nav-item:hover{ background: rgba(217,119,6,0.12); color:var(--mabi-amber); }
 
-        /* --- DASHBOARD ESTRATÉGICO --- */
-        main { flex: 1; padding: 30px; overflow-y: auto; }
-        .container { max-width: 1100px; margin: 0 auto; }
+        /* Mobile menu toggle (hidden desktop) */
+        .menu-toggle{ display:none; background:transparent; border:none; color:inherit; font-size:1.2rem; padding:6px; }
 
-        .goal-banner {
-            background: linear-gradient(90deg, #78350f 0%, #d97706 100%);
-            color: white; border-radius: 15px; padding: 20px; margin-bottom: 30px;
-            display: flex; justify-content: space-between; align-items: center;
+        /* Main */
+        main{ flex:1; padding:30px; overflow-y:auto; }
+        .container{ max-width:1100px; margin:0 auto; }
+
+        .goal-banner{
+            background:linear-gradient(90deg,#78350f 0%,#d97706 100%);
+            color:white; border-radius:15px; padding:20px; margin-bottom:var(--gap);
+            display:flex; justify-content:space-between; align-items:center; gap:12px;
         }
 
-        .assets-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
-            gap: 20px; 
+        .assets-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+            gap:var(--gap);
         }
 
-        .asset-card { 
-            background: var(--card); border-radius: 12px; border: 1px solid var(--border);
-            padding: 24px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; flex-direction: column; gap: 15px;
+        .asset-card{
+            background:var(--card); border-radius:12px; border:1px solid var(--border);
+            padding:24px; display:flex; flex-direction:column; gap:15px;
+            transition:transform .18s, box-shadow .18s, border-color .18s;
         }
-        .asset-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); border-color: var(--mabi-amber); }
+        .asset-card:hover{ transform:translateY(-6px); box-shadow:0 12px 20px rgba(0,0,0,0.08); border-color:var(--mabi-amber); }
 
-        .asset-header { display: flex; align-items: center; gap: 12px; }
-        .icon-box { background: #fff7ed; color: var(--mabi-amber); padding: 10px; border-radius: 10px; }
-        
-        .asset-title { font-weight: 700; font-size: 1.1rem; color: var(--mabi-dark); margin: 0; }
-        .asset-desc { font-size: 0.85rem; color: #78716c; line-height: 1.4; }
+        .asset-header{ display:flex; align-items:center; gap:12px; }
+        .icon-box{ background:#fff7ed; color:var(--mabi-amber); padding:10px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+        .asset-title{ margin:0; font-weight:700; color:var(--mabi-dark); }
+        .asset-desc{ margin:0; color:#78716c; font-size:0.9rem; line-height:1.4; }
 
-        .button-group { display: flex; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px dashed var(--border); }
+        .button-group{ display:flex; gap:10px; margin-top:auto; }
 
-        .btn {
-            flex: 1; padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
-            transition: 0.2s; border: 1px solid var(--border); text-decoration: none;
+        .btn{ padding:10px; border-radius:8px; font-weight:600; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--border); }
+        .btn-view{ background:#fdfaf7; color:var(--mabi-dark); }
+        .btn-edit{ background:var(--mabi-amber); color:white; border:none; }
+
+        /* Viewer */
+        #viewer{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:2000; padding:12px; }
+        .viewer-content{ background:white; width:100%; height:100%; border-radius:12px; overflow:hidden; position:relative; }
+
+        /* Form responsive tweaks */
+        .asset-card form .row{ display:flex; gap:10px; }
+        .asset-card input[type="text"], .asset-card input[type="number"], .asset-card select{ width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); }
+
+        /* Media queries: mobile first adjustments */
+        @media (max-width: 900px){
+            .assets-grid{ grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); }
+            .goal-banner{ flex-direction:column; align-items:flex-start; gap:10px; }
         }
-        .btn-view { background: #fdfaf7; color: var(--mabi-dark); }
-        .btn-view:hover { background: #f5f5f4; }
-        .btn-edit { background: var(--mabi-amber); color: white; border: none; }
-        .btn-edit:hover { background: #b45309; }
 
-        #viewer { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:2000; padding:20px; }
-        .viewer-content { background:white; width:100%; height:100%; border-radius:15px; overflow:hidden; position:relative; }
+        @media (max-width: 720px){
+            header{ padding:10px 14px; height:auto; align-items:flex-start; gap:8px; }
+            .menu-toggle{ display:inline-flex; margin-left:auto; }
+            nav{ position:fixed; top:60px; right:0; background:var(--mabi-dark); flex-direction:column; align-items:stretch; width:220px; transform:translateX(110%); transition:transform .22s ease-in-out; border-left:1px solid rgba(255,255,255,0.02); padding:12px; z-index:1500; }
+            nav.open{ transform:translateX(0); }
+            .nav-item{ padding:12px; border-radius:8px; }
+            .brand{ font-size:1rem; }
+            main{ padding:18px; }
+            .assets-grid{ grid-template-columns:1fr; gap:14px; }
+            .asset-card{ padding:16px; }
+            body::before{ background-size:60%; opacity:0.04; }
+        }
+
+        /* Larger screens: make viewer iframe full area */
+        @media (min-width:1100px){
+            .viewer-content{ border-radius:14px; }
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="brand">
-          <img src="favicon.png" alt="Logo" style="height: 30px; width: auto; margin-right: 8px;"> MABÍ CIBAO <span>UNA EMPRESA M&M</span>
-        </div>
-        <div style="flex:1"></div>
-
-        <div class="nav-item"><i data-lucide="layout-dashboard" size="18" style="margin-right:8px"></i> Dashboard</div>
-        <div class="nav-item"><i data-lucide="truck" size="18" style="margin-right:8px"></i> Logística</div>
-        <div class="nav-item" onclick="mostrarSeccion('pedidos')">
-            <i data-lucide="shopping-cart" size="18" style="margin-right:8px"></i> Hacer Pedido
+          <img src="favicon.png" alt="Logo"> MABÍ CIBAO <span style="color:var(--mabi-amber); font-weight:700; margin-left:8px; font-size:0.85rem;">UNA EMPRESA M&M</span>
         </div>
 
-        <input type="color" id="themeColor" value="#d97706" style="margin-left:20px; cursor:pointer">
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+
+        <nav id="mainNav" aria-label="Navegación principal">
+            <div class="nav-item" onclick="mostrarSeccion('dashboard')"><i data-lucide="layout-dashboard" style="height:18px"></i> Dashboard</div>
+            <div class="nav-item" onclick="mostrarSeccion('logistica')"><i data-lucide="truck" style="height:18px"></i> Logística</div>
+            <div class="nav-item" onclick="mostrarSeccion('pedidos')"><i data-lucide="shopping-cart" style="height:18px"></i> Hacer Pedido</div>
+        </nav>
+
+        <input type="color" id="themeColor" value="#d97706" style="margin-left:12px; cursor:pointer">
     </header>
 
     <main>
         <div class="container">
             <div class="goal-banner">
                 <div>
-                    <h2 style="margin:0; font-size: 1.5rem;">Meta: 100 Huacales/Semana</h2>
-                    <p style="margin:5px 0 0 0; opacity:0.9">Primer Trimestre - Seguimiento de Producción y Ganancias</p>
+                    <h2 style="margin:0; font-size:1.3rem;">Meta: 100 Huacales/Semana</h2>
+                    <p style="margin:6px 0 0 0; opacity:0.95">Primer Trimestre - Seguimiento de Producción y Ganancias</p>
                 </div>
                 <div style="text-align:right">
-                    <div style="font-size: 0.8rem; text-transform:uppercase; font-weight:bold">Estatus Socios</div>
-                    <div style="display:flex; gap:10px; margin-top:5px">
-                        <span title="Socio M" style="background:#fff; color:#78350f; padding:4px 8px; border-radius:4px; font-size:0.7rem; font-weight:900">M</span>
-                        <span title="Socio M" style="background:#fff; color:#78350f; padding:4px 8px; border-radius:4px; font-size:0.7rem; font-weight:900">M</span>
+                    <div style="font-size:0.8rem; text-transform:uppercase; font-weight:700">Estatus Socios</div>
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <span title="Socio M" style="background:#fff; color:#78350f; padding:4px 8px; border-radius:4px; font-weight:800;">M</span>
+                        <span title="Socio M" style="background:#fff; color:#78350f; padding:4px 8px; border-radius:4px; font-weight:800;">M</span>
                     </div>
                 </div>
             </div>
 
-            <section id="seccion-pedidos" style="display:none; margin-top: 20px;">
-                <div class="asset-card" style="max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
-                    <h3 class="asset-title" style="color: var(--mabi-dark);"><i data-lucide="file-text"></i> Nuevo Pedido</h3>
-                    <div style="margin-top:15px">
-                        <label style="display:block; font-size:0.8rem; font-weight:bold; margin-bottom:5px">Nombre del Cliente:</label>
-                        <input type="text" id="order-client" placeholder="Ej: Colmado La Esperanza" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); margin-bottom:15px; box-sizing: border-box;">
-                        
-                        <label style="display:block; font-size:0.8rem; font-weight:bold; margin-bottom:5px">Cantidad (Huacales):</label>
-                        <input type="number" id="order-qty" value="1" min="1" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); box-sizing: border-box; margin-bottom:12px;">
-                        
-                        <label style="display:block; font-size:0.8rem; font-weight:bold; margin-bottom:5px">Tamaño del huacal:</label>
-                        <select id="order-size" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); box-sizing: border-box; margin-bottom:12px;">
-                            <option value="12">12 botellas</option>
-                            <option value="24">24 botellas</option>
-                        </select>
+            <section id="seccion-pedidos" style="display:none; margin-top: 12px;">
+                <div class="asset-card" style="max-width:720px; margin:0 auto;">
+                    <h3 class="asset-title" style="margin:0 0 12px 0;"><i data-lucide="file-text" style="height:18px"></i> Nuevo Pedido</h3>
 
-                        <label style="display:block; font-size:0.8rem; font-weight:bold; margin-bottom:5px">Precio por huacal (RD$):</label>
-                        <input type="number" id="order-price" value="1200" min="0" step="0.01" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); box-sizing: border-box; margin-bottom:8px;">
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <label style="font-size:0.85rem; font-weight:700;">Nombre del Cliente</label>
+                        <input type="text" id="order-client" placeholder="Ej: Colmado La Esperanza">
 
-                        <div style="font-size:0.8rem; color:#6b6b6b; margin-bottom:12px">
-                            Si el precio depende del tamaño, ajústalo manualmente antes de generar la factura.
+                        <div class="row" style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <div style="flex:1; min-width:140px;">
+                                <label style="font-size:0.85rem; font-weight:700;">Cantidad (Huacales)</label>
+                                <input type="number" id="order-qty" value="1" min="1">
+                            </div>
+
+                            <div style="flex:1; min-width:140px;">
+                                <label style="font-size:0.85rem; font-weight:700;">Tamaño</label>
+                                <select id="order-size" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border);">
+                                    <option value="12">12 botellas</option>
+                                    <option value="24">24 botellas</option>
+                                </select>
+                            </div>
+
+                            <div style="flex:1; min-width:160px;">
+                                <label style="font-size:0.85rem; font-weight:700;">Precio por huacal (RD$)</label>
+                                <input type="number" id="order-price" value="1200" min="0" step="0.01">
+                            </div>
                         </div>
-                        
-                        <button class="btn btn-edit" style="width:100%; margin-top:10px; padding:12px; cursor:pointer;" onclick="processOrder()">
-                            <i data-lucide="printer" size="16"></i> Generar Factura M&M
-                        </button>
+
+                        <div style="font-size:0.85rem; color:#666;">Ajusta el precio si depende del tamaño.</div>
+
+                        <button class="btn btn-edit" style="width:100%; padding:12px;" onclick="processOrder()"><i data-lucide="printer" style="height:16px"></i> Generar Factura M&M</button>
                     </div>
                 </div>
             </section>
@@ -166,23 +189,35 @@
 
     <div id="viewer">
         <div class="viewer-content">
-            <button onclick="closeViewer()" style="position:absolute; top:10px; right:10px; z-index:10; padding:8px 16px; background:#ef4444; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold">Cerrar</button>
+            <button onclick="closeViewer()" style="position:absolute; top:10px; right:10px; z-index:10; padding:8px 12px; background:#ef4444; color:white; border:none; border-radius:8px;">Cerrar</button>
             <iframe id="iframe" width="100%" height="100%" frameborder="0"></iframe>
         </div>
     </div>
 
-    <!-- Cargar lucide desde CDN correctamente -->
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.244.0/dist/lucide.min.js"></script>
-
     <script>
+        // Iconos
+        if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+
+        // Menú móvil
+        const menuToggle = document.getElementById('menuToggle');
+        const mainNav = document.getElementById('mainNav');
+        menuToggle?.addEventListener('click', () => {
+            mainNav.classList.toggle('open');
+        });
+        // Cerrar menú al redimensionar a escritorio
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 720) mainNav.classList.remove('open');
+        });
+
+        // Assets (igual que antes)
         const ASSETS = [
             { title: "Calculadora de Producción", desc: "Costos de materia prima, azúcar, botellas y fermentación por lote.", icon: "beaker", view: "#", edit: "#" },
             { title: "Control de Ventas y Huacales", desc: "Seguimiento semanal para alcanzar la meta de los 100 huacales.", icon: "trending-up", view: "#", edit: "#" },
             { title: "Ganancias y Activos", desc: "Balance de ingresos, egresos y activos fijos de M&M.", icon: "dollar-sign", view: "#", edit: "#" },
             { title: "Inventario de Insumos", desc: "Stock de envases, etiquetas y tapones.", icon: "clipboard-list", view: "#", edit: "#" }
         ];
-
-        function renderAssets() {
+        function renderAssets(){
             const container = document.getElementById('assets-container');
             container.innerHTML = ASSETS.map(asset => `
                 <div class="asset-card">
@@ -195,125 +230,74 @@
                         <a href="${asset.view}" class="btn btn-view">Ver</a>
                         <a href="${asset.edit}" class="btn btn-edit">Editar</a>
                     </div>
-                </div>`).join('');
-            if (window.lucide && typeof lucide.createIcons === 'function') {
-                lucide.createIcons();
-            }
+                </div>
+            `).join('');
+            if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
         }
         renderAssets();
-        // --- LÓGICA DE NEGOCIO MABI CIBAO ---
 
-        function mostrarSeccion(tipo) {
+        // Navegación / secciones
+        function mostrarSeccion(tipo){
             const dashboard = document.getElementById('assets-container');
             const banner = document.querySelector('.goal-banner');
             const pedidos = document.getElementById('seccion-pedidos');
-
-            if (tipo === 'pedidos') {
-                if (dashboard) dashboard.style.display = 'none';
-                if (banner) banner.style.display = 'none';
-                pedidos.style.display = 'block';
+            if (tipo === 'pedidos'){
+                if (dashboard) dashboard.style.display='none';
+                if (banner) banner.style.display='none';
+                pedidos.style.display='block';
+                // cerrar menú móvil si está abierto
+                mainNav.classList.remove('open');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 location.reload();
             }
         }
 
-        function processOrder() {
+        // Generar factura (usa tamaño y precio)
+        function processOrder(){
             const clienteRaw = document.getElementById('order-client').value || '';
             const cantidad = parseInt(document.getElementById('order-qty').value, 10) || 0;
             const size = parseInt(document.getElementById('order-size').value, 10) || 12;
             const precioUnitario = parseFloat(document.getElementById('order-price').value) || 0;
 
-            if (!clienteRaw.trim()) {
-                alert("Por favor, ingresa el nombre del cliente para la factura.");
-                return;
-            }
-            if (cantidad <= 0) {
-                alert("La cantidad debe ser mayor que 0.");
-                return;
-            }
-            if (precioUnitario <= 0) {
-                alert("El precio por huacal debe ser mayor que 0.");
-                return;
-            }
+            if (!clienteRaw.trim()){ alert('Por favor, ingresa el nombre del cliente para la factura.'); return; }
+            if (cantidad <= 0){ alert('La cantidad debe ser mayor que 0.'); return; }
+            if (precioUnitario <= 0){ alert('El precio por huacal debe ser mayor que 0.'); return; }
 
             const cliente = clienteRaw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             const total = cantidad * precioUnitario;
-            const fecha = new Date().toLocaleDateString('es-DO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            const numFactura = Math.floor(Math.random() * 1000).toString().padStart(4, '0');
-
+            const fecha = new Date().toLocaleDateString('es-DO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+            const numFactura = Math.floor(Math.random()*1000).toString().padStart(4,'0');
             const descripcion = `Huacal de Mabí Artesanal (${size} botellas)`;
 
             const win = window.open('', '_blank');
-            if (!win) {
-                alert('El navegador bloqueó la ventana emergente. Permite popups para generar la factura.');
-                return;
-            }
+            if (!win){ alert('El navegador bloqueó la ventana emergente. Permite popups para generar la factura.'); return; }
 
             win.document.write(`
-                <html>
-                <head>
-                    <title>Factura M&M - ${cliente}</title>
-                    <style>
-                        body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #333; line-height: 1.6; }
-                        .header { border-bottom: 3px solid #d97706; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
-                        .mabi-brand { color: #451a03; margin: 0; }
-                        .factura-info { text-align: right; }
-                        table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-                        th { background: #fef3c7; padding: 12px; border: 1px solid #e7e5e4; text-align: left; }
-                        td { padding: 12px; border: 1px solid #e7e5e4; }
-                        .total-box { text-align: right; font-size: 1.4rem; font-weight: bold; color: #b45309; margin-top: 20px; }
-                        .footer { margin-top: 60px; text-align: center; border-top: 1px dashed #ccc; padding-top: 20px; font-style: italic; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <div>
-                            <h1 class="mabi-brand">MABÍ CIBAO</h1>
-                            <p>M&M Emprendimiento Artesanal<br>Santiago, República Dominicana</p>
-                        </div>
-                        <div class="factura-info">
-                            <h2 style="margin:0; color:#d97706;">FACTURA</h2>
-                            <p>No. #MC-${numFactura}<br>${fecha}</p>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 20px;">
-                        <strong>CLIENTE:</strong> ${cliente}
-                    </div>
-
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Descripción del Producto</th>
-                                <th>Cant.</th>
-                                <th>Precio Unit.</th>
-                                <th>Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>${descripcion}</td>
-                                <td>${cantidad}</td>
-                                <td>RD$ ${precioUnitario.toLocaleString()}</td>
-                                <td>RD$ ${total.toLocaleString()}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div class="total-box">
-                        TOTAL A PAGAR: RD$ ${total.toLocaleString()}
-                    </div>
-
-                    <div class="footer">
-                        <p>¡Gracias por apoyar lo artesanal y local!</p>
-                        <p>Mabí Cibao - Frescura de nuestra tierra.</p>
-                    </div>
-                </body>
-                </html>
+                <html><head><title>Factura M&M - ${cliente}</title>
+                <meta name="viewport" content="width=device-width,initial-scale=1.0">
+                <style>body{font-family:Segoe UI,Arial;padding:24px;color:#333} table{width:100%;border-collapse:collapse} th,td{padding:10px;border:1px solid #e7e5e4}</style>
+                </head><body>
+                <h1 style="margin:0;color:#451a03">MABÍ CIBAO</h1>
+                <div style="margin-top:8px;margin-bottom:18px"><strong>FACTURA</strong> — No. MC-${numFactura}<br><small>${fecha}</small></div>
+                <div><strong>CLIENTE:</strong> ${cliente}</div>
+                <table style="margin-top:12px"><thead><tr><th>Descripción</th><th>Cant.</th><th>Precio Unit.</th><th>Subtotal</th></tr></thead>
+                <tbody><tr><td>${descripcion}</td><td>${cantidad}</td><td>RD$ ${precioUnitario.toLocaleString()}</td><td>RD$ ${total.toLocaleString()}</td></tr></tbody></table>
+                <div style="text-align:right;margin-top:12px;font-weight:700;color:#b45309">TOTAL RD$ ${total.toLocaleString()}</div>
+                <div style="margin-top:24px;color:#666">¡Gracias por apoyar lo artesanal y local!</div>
+                </body></html>
             `);
             win.document.close();
             win.print();
         }
+
+        // Cerrar viewer si se implementa
+        function closeViewer(){ document.getElementById('viewer').style.display='none'; }
+
+        // Tema color - aplica variable CSS
+        document.getElementById('themeColor')?.addEventListener('input', (e)=>{
+            document.documentElement.style.setProperty('--mabi-amber', e.target.value);
+        });
     </script>
 </body>
 </html>
