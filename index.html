@@ -172,7 +172,7 @@
 
                             <div style="flex:1; min-width:160px;">
                                 <label style="font-size:0.85rem; font-weight:700;">Precio por huacal (RD$)</label>
-                                <input type="number" id="order-price" value="1200" min="0" step="0.01">
+                                <input type="number" id="order-price" value="250" min="0" step="0.01">
                             </div>
                         </div>
 
@@ -252,6 +252,22 @@
                 location.reload();
             }
         }
+
+        // Default prices by size
+        const DEFAULT_PRICES = { 12: 250, 24: 500 };
+
+        // Actualiza el campo de precio cuando cambia el tamaño
+        const sizeEl = document.getElementById('order-size');
+        const priceEl = document.getElementById('order-price');
+        function updatePriceFromSize() {
+            const size = parseInt(sizeEl.value, 10) || 12;
+            // Establece el precio por defecto según tamaño
+            priceEl.value = DEFAULT_PRICES[size];
+        }
+        // Inicializar precio al cargar
+        updatePriceFromSize();
+        // Escuchar cambios de tamaño
+        sizeEl.addEventListener('change', updatePriceFromSize);
 
         // Generar factura (usa tamaño y precio)
         function processOrder(){
