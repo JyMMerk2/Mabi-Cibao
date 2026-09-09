@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mabí Cibao | Sistema Integral Operativo y Financiero</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    
+    <!-- Lucide Icons & Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.244.0/dist/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --mabi-brown: #451a03;
+            --mabi-amber: #d97706;
+            --mabi-amber-hover: #b45309;
+            --mabi-light-bg: #fffdf5;
+            --card-bg: #ffffff;
+            --border-color: #f0ece1;
+            --text-primary: #292524;
+            --text-muted: #78716c;
+            --green-success: #16a34a;
+            --red-danger: #dc2626;
+            --blue-accent: #2563eb;
+            --gap: 20px;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        
+        body {
+            margin: 0; background: var(--mabi-light-bg); color: var(--text-primary);
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+
+        /* PANTALLA DE ACCESO (OVERLAY AUTENTICACIÓN) */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--mabi-brown);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .login-card {
+            background: #ffffff;
+            border: 2px solid var(--mabi-amber);
+            border-radius: 16px;
+            padding: 35px;
+            width: 380px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .login-title {
+            color: var(--mabi-brown);
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .login-input-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .login-input-group label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .login-input-group input {
+            width: 100%;
+            padding: 10px 14px;
+            background: #faf8f5;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .login-input-group input:focus {
+            border-color: var(--mabi-amber);
+            box-shadow: 0 0 8px rgba(217, 119, 6, 0.3);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--mabi-amber);
+            border: none;
+            color: #ffffff;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            background: var(--mabi-amber-hover);
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+        }
+
+        .auth-toggle-link {
+            display: block;
+            margin-top: 12px;
+            font-size: 11px;
+            color: var(--text-muted);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .auth-toggle-link:hover { color: var(--mabi-amber); }
+
+        .login-msg {
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 15px;
+            display: none;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .login-msg.error { color: #dc2626; background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.3); }
+        .login-msg.success { color: #16a34a; background: rgba(22, 163, 74, 0.1); border: 1px solid rgba(22, 163, 74, 0.3); }
+
+        /* OCULTAR APLICACIÓN SI NO HAY SESIÓN INICIADA */
+        body.not-authenticated header,
+        body.not-authenticated main,
+        body.not-authenticated .filter-bar {
+            display: none !important;
+        }
+
+        /* HEADER DE NAVEGACIÓN */
+        header {
+            background: var(--mabi-brown); display: flex; align-items: center;
+            padding: 0 25px; height: 60px; color: #fef3c7; gap: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 1000;
+        }
+        .brand { font-weight: 800; display: flex; align-items: center; gap: 8px; font-size: 1.05rem; letter-spacing: 0.5px; }
+        .brand span.tag { color: var(--mabi-amber); font-weight: 800; font-size: 0.75rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; }
+        
+        nav { display: flex; align-items: center; gap: 5px; margin-left: auto; height: 100%; }
+        .nav-item {
+            padding: 0 16px; height: 100%; cursor: pointer; font-weight: 700;
+            font-size: 0.88rem; color: #fef3c7; display: flex; align-items: center; gap: 6px;
+            transition: all 0.2s ease; white-space: nowrap; border-bottom: 3px solid transparent;
+        }
+        .nav-item:hover { background: rgba(217, 119, 6, 0.15); color: #ffffff; }
+        .nav-item.active { background: rgba(217, 119, 6, 0.25); color: #ffffff; border-bottom: 3px solid var(--mabi-amber); }
+
+        .menu-toggle { display: none; background: transparent; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; }
+
+        /* CONTENEDOR PRINCIPAL */
+        main { flex: 1; padding: 25px; max-width: 1400px; margin: 0 auto; width: 100%; }
+
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FILTROS DE PERÍODO */
+        .filter-bar {
+            background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px;
+            padding: 12px 20px; margin-bottom: var(--gap); display: flex; flex-wrap: wrap;
+            align-items: center; gap: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .filter-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: var(--mabi-brown); }
+
+        /* KPIS DASHBOARD */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: var(--gap); }
+        .kpi-card {
+            background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color);
+            padding: 16px; display: flex; flex-direction: column; gap: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .kpi-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .kpi-value { font-size: 1.35rem; font-weight: 800; color: var(--mabi-brown); }
+        .kpi-sub { font-size: 0.75rem; color: var(--green-success); font-weight: 600; }
+
+        .card-box {
+            background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color);
+            padding: 24px; margin-bottom: var(--gap); box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--mabi-light-bg);
+        }
+        .card-title { margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--mabi-brown); display: flex; align-items: center; gap: 10px; }
+
+        .calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 20px; }
+        .calc-section { background: #faf8f3; border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; }
+        .calc-section-title { font-size: 0.88rem; font-weight: 800; text-transform: uppercase; color: var(--mabi-brown); margin-bottom: 14px; border-bottom: 2px solid var(--mabi-amber); padding-bottom: 5px; }
+
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+        .form-control {
+            width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #d6d3d1;
+            font-size: 0.88rem; background: #fff; transition: border-color 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--mabi-amber); box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15); }
+
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        /* TABLAS Y EDICIÓN EN CELDA */
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        th { background: #fdfaf5; color: var(--mabi-brown); font-weight: 700; text-align: left; padding: 12px 10px; border-bottom: 2px solid var(--border-color); }
+        td { padding: 10px; border-bottom: 1px solid var(--border-color); }
+        tr:hover td { background: #fefdfa; }
+
+        td[contenteditable="true"] {
+            background: #fffdf0; outline: 1px dashed #d97706; cursor: text; border-radius: 3px;
+        }
+        td[contenteditable="true"]:focus {
+            background: #ffffff; outline: 2px solid #d97706; box-shadow: 0 0 5px rgba(217, 119, 6, 0.3);
+        }
+
+        .select-pay {
+            padding: 4px 8px; border-radius: 6px; border: 1px solid #d6d3d1;
+            font-size: 0.8rem; font-weight: 700; background: #fff; cursor: pointer;
+        }
+
+        /* BOTONES Y BADGES */
+        .btn {
+            padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            border: none; font-size: 0.85rem; transition: all 0.2s ease;
+        }
+        .btn-primary { background: var(--mabi-amber); color: white; }
+        .btn-primary:hover { background: var(--mabi-amber-hover); }
+        .btn-dark { background: var(--mabi-brown); color: white; }
+        .btn-dark:hover { background: #2d1102; }
+        .btn-danger { background: var(--red-danger); color: white; }
+        .btn-sm { padding: 4px 10px; font-size: 0.78rem; }
+
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+        .badge-success { background: #dcfce7; color: #15803d; }
+        .badge-warning { background: #fef3c7; color: #b45309; }
+        .badge-danger { background: #fee2e2; color: #dc2626; }
+
+        /* MODAL EMERGENTE */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5);
+            display: none; align-items: center; justify-content: center;
+            z-index: 2000; animation: fadeIn 0.2s ease;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .modal-card {
+            background: #ffffff; border-radius: 16px; width: 100%; max-width: 500px;
+            padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--mabi-light-bg); padding-bottom: 12px; margin-bottom: 16px;
+        }
+        .modal-title { font-size: 1.1rem; font-weight: 800; color: var(--mabi-brown); margin: 0; }
+        .btn-close-modal { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); }
+
+        @media (max-width: 900px) {
+            .menu-toggle { display: block; }
+            nav {
+                position: fixed; top: 60px; right: 0; background: var(--mabi-brown);
+                flex-direction: column; align-items: stretch; width: 250px; height: auto;
+                transform: translateX(100%); transition: transform 0.3s ease;
+                padding: 15px; box-shadow: -4px 10px 15px rgba(0,0,0,0.2);
+            }
+            nav.open { transform: translateX(0); }
+            .nav-item { height: 45px; border-bottom: none; border-left: 3px solid transparent; }
+            .nav-item.active { border-bottom: none; border-left: 3px solid var(--mabi-amber); }
+            .calc-grid, .row-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="not-authenticated">
+
+    <!-- OVERLAY AUTENTICACIÓN USUARIOS -->
+    <div id="login-overlay">
+        <div class="login-card">
+            <div id="form-title" class="login-title">Mabí Cibao - Control Operativo</div>
+            
+            <!-- FORMULARIO DE LOGIN -->
+            <form id="login-form" onsubmit="procesarAuth(event, 'LOGIN')">
+                <div class="login-input-group">
+                    <label for="login-user">Usuario</label>
+                    <input type="text" id="login-user" placeholder="Ingrese usuario" required autocomplete="off">
+                </div>
+                
+                <div class="login-input-group">
+                    <label for="login-pass">Contraseña</label>
+                    <input type="password" id="login-pass" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="login-btn">Iniciar Sesión</button>
+                <span class="auth-toggle-link" onclick="alternarFormulario('REGISTRO')">¿No tienes usuario? Solicita registro aquí</span>
+                <span class="auth-toggle-link" onclick="alternarFormulario('RECUPERAR')" style="color: #d97706;">¿Olvidaste tu acceso o necesitas ayuda?</span>
+            </form>
+
+            <!-- FORMULARIO DE REGISTRO -->
+            <form id="register-form" style="display: none;" onsubmit="procesarAuth(event, 'REGISTRO')">
+                <div class="login-input-group">
+                    <label for="reg-user">Usuario Deseado</label>
+                    <input type="text" id="reg-user" placeholder="Ej: jmercado" required autocomplete="off">
+                </div>
+
+                <div class="login-input-group">
+                    <label for="reg-email">Correo Electrónico (Opcional)</label>
+                    <input type="email" id="reg-email" placeholder="ejemplo@correo.com" autocomplete="off">
+                </div>
+                
+                <div class="login-input-group">
+                    <label for="reg-pass">Contraseña</label>
+                    <input type="password" id="reg-pass" placeholder="••••••••" required>
+                </div>
+
+                <div class="login-input-group">
+                    <label for="reg-pass-confirm">Confirmar Contraseña</label>
+                    <input type="password" id="reg-pass-confirm" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="login-btn" style="background: #16a34a;">Enviar Solicitud</button>
+                <span class="auth-toggle-link" onclick="alternarFormulario('LOGIN')">Volver a inicio de sesión</span>
+            </form>
+
+            <!-- FORMULARIO DE RECUPERACIÓN -->
+            <form id="recovery-form" style="display: none;" onsubmit="procesarAuth(event, 'RECUPERAR')">
+                <div class="login-input-group">
+                    <label for="rec-user">Tu Usuario</label>
+                    <input type="text" id="rec-user" placeholder="Ingrese tu usuario registrado" required autocomplete="off">
+                </div>
+
+                <div class="login-input-group">
+                    <label for="rec-email">Correo Electrónico (Opcional)</label>
+                    <input type="email" id="rec-email" placeholder="ejemplo@correo.com" autocomplete="off">
+                </div>
+
+                <button type="submit" class="login-btn" style="background: #d97706;">Notificar al Administrador</button>
+                <span class="auth-toggle-link" onclick="alternarFormulario('LOGIN')">Volver a inicio de sesión</span>
+            </form>
+
+            <!-- FORMULARIO DE CAMBIO DE CONTRASEÑA OBLIGATORIO -->
+            <form id="change-pass-form" style="display: none;" onsubmit="procesarAuth(event, 'CAMBIAR_PASS')">
+                <p style="font-size: 11px; color: #d97706; margin-bottom: 15px;">Ingresaste con una clave temporal. Define tu nueva contraseña personal:</p>
+                
+                <div class="login-input-group">
+                    <label for="new-pass">Nueva Contraseña</label>
+                    <input type="password" id="new-pass" placeholder="••••••••" required>
+                </div>
+
+                <div class="login-input-group">
+                    <label for="new-pass-confirm">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="new-pass-confirm" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="login-btn">Guardar Nueva Contraseña</button>
+            </form>
+
+            <div id="login-msg" class="login-msg"></div>
+        </div>
+    </div>
+
+    <!-- HEADER DE NAVEGACIÓN PRINCIPAL -->
+    <header>
+        <div class="brand">
+            <span>MABÍ CIBAO</span> 
+            <span class="tag">BY M&M</span>
+        </div>
+
+        <button class="menu-toggle" id="menuToggle" onclick="toggleMenu()">
+            <i data-lucide="menu"></i>
+        </button>
+
+        <nav id="mainNav">
+            <div class="nav-item active" onclick="switchTab('dashboard', this)"><i data-lucide="layout-dashboard"></i> Dashboard</div>
+            <div class="nav-item" onclick="switchTab('calculadora', this)"><i data-lucide="calculator"></i> Calculadora Ventas</div>
+            <div class="nav-item" onclick="switchTab('inversionistas', this)"><i data-lucide="pie-chart"></i> Inversionistas</div>
+            <div class="nav-item" onclick="switchTab('inventario', this)"><i data-lucide="package"></i> Insumos/Proveedores</div>
+            <div class="nav-item" onclick="switchTab('ventas', this)"><i data-lucide="receipt"></i> Ventas & Facturas</div>
+            <div class="nav-item" onclick="switchTab('clientes', this)"><i data-lucide="users"></i> Clientes</div>
+            <div class="nav-item" onclick="switchTab('empleados', this)"><i data-lucide="briefcase"></i> Empleados</div>
+            <div class="nav-item" onclick="cerrarSesion()" style="color: #f87171;"><i data-lucide="log-out"></i> Salir</div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- BARRA DE FILTROS -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <i data-lucide="calendar"></i> <span>Año:</span>
+                <select id="flt-year" class="form-control" style="width:90px" onchange="aplicarFiltros()">
+                    <option value="2026" selected>2026</option>
+                    <option value="2025">2025</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <span>Trimestre:</span>
+                <select id="flt-trimestre" class="form-control" style="width:110px" onchange="aplicarFiltros()">
+                    <option value="ALL">Todos</option>
+                    <option value="Q1">Q1 (Ene-Mar)</option>
+                    <option value="Q2">Q2 (Abr-Jun)</option>
+                    <option value="Q3" selected>Q3 (Jul-Sep)</option>
+                    <option value="Q4">Q4 (Oct-Dic)</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <span>Mes:</span>
+                <select id="flt-mes" class="form-control" style="width:120px" onchange="aplicarFiltros()">
+                    <option value="ALL">Todos</option>
+                    <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                    <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                    <option value="7">Julio</option><option value="8" selected>Agosto</option><option value="9">Septiembre</option>
+                    <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <span>Semana:</span>
+                <select id="flt-semana" class="form-control" style="width:110px" onchange="aplicarFiltros()">
+                    <option value="ALL">Todas</option>
+                    <option value="W1">Semana 1</option><option value="W2">Semana 2</option>
+                    <option value="W3" selected>Semana 3</option><option value="W4">Semana 4</option>
+                </select>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="aplicarFiltros()"><i data-lucide="filter"></i> Filtrar Vista</button>
+        </div>
+
+        <!-- 1. DASHBOARD GENERAL -->
+        <section id="tab-dashboard" class="tab-content active">
+            <div class="kpi-grid">
+                <div class="kpi-card" style="border-left:4px solid var(--mabi-brown)">
+                    <div class="kpi-title">Ganancia De Por Vida</div>
+                    <div class="kpi-value" id="kpi-porvida">RD$ 285,400.00</div>
+                    <div class="kpi-sub">Total Acumulado</div>
+                </div>
+                <div class="kpi-card" style="border-left:4px solid var(--blue-accent)">
+                    <div class="kpi-title">Ganancia Anual</div>
+                    <div class="kpi-value" id="kpi-anual">RD$ 124,500.00</div>
+                    <div class="kpi-sub" id="lbl-anual">Año 2026</div>
+                </div>
+                <div class="kpi-card" style="border-left:4px solid var(--mabi-amber)">
+                    <div class="kpi-title">Ganancia Trimestral</div>
+                    <div class="kpi-value" id="kpi-trimestral">RD$ 46,570.80</div>
+                    <div class="kpi-sub" id="lbl-trimestre">Q3 (Jul-Sep)</div>
+                </div>
+                <div class="kpi-card" style="border-left:4px solid #8b5cf6">
+                    <div class="kpi-title">Ganancia Mensual</div>
+                    <div class="kpi-value" id="kpi-mensual">RD$ 31,047.22</div>
+                    <div class="kpi-sub" id="lbl-mes">Mes de Agosto</div>
+                </div>
+                <div class="kpi-card" style="border-left:4px solid var(--green-success)">
+                    <div class="kpi-title">Ganancia Semanal</div>
+                    <div class="kpi-value" id="kpi-semanal">RD$ 15,523.61</div>
+                    <div class="kpi-sub" id="lbl-semana">Semana 3</div>
+                </div>
+                <div class="kpi-card" style="border-left:4px solid #0284c7">
+                    <div class="kpi-title">Total CxC (Por Cobrar)</div>
+                    <div class="kpi-value" id="kpi-cxc" style="color:#0284c7;">RD$ 1,500.00</div>
+                    <div class="kpi-sub" style="color:#0284c7;">Pendiente Clientes</div>
+                </div>
+                <div class="kpi-card" style="border-left:4px solid var(--red-danger)">
+                    <div class="kpi-title">Total CxP (Por Pagar)</div>
+                    <div class="kpi-value" id="kpi-cxp" style="color:var(--red-danger);">RD$ 2,950.00</div>
+                    <div class="kpi-sub" style="color:var(--red-danger);">Deuda Proveedores</div>
+                </div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-header">
+                    <h3 class="card-title"><i data-lucide="trending-up"></i> Metas Operativas y Reparto Socios</h3>
+                </div>
+                <div class="row-2">
+                    <div>
+                        <p style="font-weight:700; margin-bottom:8px;">Metas de Producción Proyectadas:</p>
+                        <table class="table-responsive">
+                            <thead>
+                                <tr><th>Periodo</th><th>Meta Huacales</th><th>Venta Est. Colmados</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><strong>Día</strong></td><td>60 Huacales</td><td>RD$ 24,000.00</td></tr>
+                                <tr><td><strong>Semana</strong></td><td>180 Huacales</td><td>RD$ 72,000.00</td></tr>
+                                <tr><td><strong>Mes</strong></td><td>1,260 Huacales</td><td>RD$ 504,000.00</td></tr>
+                                <tr><td><strong>Anual</strong></td><td>15,120 Huacales</td><td>RD$ 6,048,000.00</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="display:flex; justify-content:center; align-items:center;">
+                        <canvas id="chartGanancias" style="max-height:200px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. CALCULADORA DE VENTAS -->
+        <section id="tab-calculadora" class="tab-content">
+            <div class="card-box">
+                <div class="card-header">
+                    <h3 class="card-title"><i data-lucide="calculator"></i> Calculadora Dinámica de Producción y Lote</h3>
+                    <button class="btn btn-primary" onclick="calcularVentas()"><i data-lucide="refresh-cw"></i> Recalcular</button>
+                </div>
+
+                <div class="calc-grid">
+                    <div class="calc-section">
+                        <div class="calc-section-title">1. Rendimiento y Huacales Tanda</div>
+                        <div class="form-group">
+                            <label>Libras de Azúcar Usadas en Tanda:</label>
+                            <input type="number" id="inp-lbs-azucar" class="form-control" value="125" oninput="calcularHuacalesDesdeAzucar()">
+                        </div>
+                        <div class="form-group">
+                            <label>Factor Lbs Azúcar por Huacal:</label>
+                            <input type="number" id="inp-factor-lbs" class="form-control" value="3.00" step="0.01" oninput="calcularHuacalesDesdeAzucar()">
+                        </div>
+                        <div style="background:#fff; border:1px solid var(--border-color); padding:10px; border-radius:8px; margin-top:10px;">
+                            <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted);">HUACALES RESULTANTES:</div>
+                            <div style="font-size:1.3rem; font-weight:800; color:var(--mabi-amber);" id="res-huacales-calc">41.67 Huacales</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);" id="res-botellas-calc">1,000 Botellas Totales</div>
+                        </div>
+                    </div>
+
+                    <div class="calc-section">
+                        <div class="calc-section-title">2. Costos & Precios Tanda</div>
+                        <div class="form-group">
+                            <label>Costo Saco Azúcar (RD$):</label>
+                            <input type="number" id="inp-azucar" class="form-control" value="3950" oninput="calcularVentas()">
+                        </div>
+                        <div class="form-group">
+                            <label>Combustible / Gas (RD$):</label>
+                            <input type="number" id="inp-combustible" class="form-control" value="600" oninput="calcularVentas()">
+                        </div>
+                        <div class="form-group">
+                            <label>Precio Venta por Huacal (RD$):</label>
+                            <input type="number" id="inp-precio-huacal" class="form-control" value="400" oninput="calcularVentas()">
+                        </div>
+                        <div class="form-group">
+                            <label>Pago Empleados / Deducciones (RD$):</label>
+                            <input type="number" id="inp-empleados" class="form-control" value="500" oninput="calcularVentas()">
+                        </div>
+                    </div>
+
+                    <div class="calc-section">
+                        <div class="calc-section-title">3. REPARTO DE GANANCIAS LOTE</div>
+                        <div style="font-size:0.88rem; margin-bottom:8px;">Venta Total Tanda: <strong id="res-venta-tanda" style="color:var(--blue-accent); font-weight:800;">$16,668.00</strong></div>
+                        <div style="font-size:0.88rem; margin-bottom:8px;">Fondo para Reiniciar (Costo): <strong id="res-fondo-reinicie" style="color:var(--red-danger); font-weight:800;">$4,550.00</strong></div>
+                        <div style="font-size:0.88rem; margin-bottom:14px;">Ganancias Limpias a Repartir: <strong id="res-ganancia-limpia" style="color:var(--green-success); font-weight:800;">$11,618.00</strong></div>
+
+                        <table style="width:100%; font-size:0.85rem;">
+                            <thead><tr><th>Entidad / Socio</th><th>% (Editable)</th><th>Monto RD$</th></tr></thead>
+                            <tbody>
+                                <tr>
+                                    <td>Mabí Cibao (Empresa)</td>
+                                    <td contenteditable="true" id="pct-mabi" onblur="calcularVentas()">40%</td>
+                                    <td id="split-mabi" style="font-weight:700;">$4,647.20</td>
+                                </tr>
+                                <tr>
+                                    <td>Socio 1 (Jorge Muñoz)</td>
+                                    <td contenteditable="true" id="pct-socio1" onblur="calcularVentas()">30%</td>
+                                    <td id="split-socio1" style="font-weight:700;">$3,485.40</td>
+                                </tr>
+                                <tr>
+                                    <td>Socio 2 (Mercado Rosa)</td>
+                                    <td contenteditable="true" id="pct-socio2" onblur="calcularVentas()">30%</td>
+                                    <td id="split-socio2" style="font-weight:700;">$3,485.40</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. INVERSIONISTAS -->
+        <section id="tab-inversionistas" class="tab-content">
+            <div class="card-box">
+                <div class="card-header">
+                    <h3 class="card-title"><i data-lucide="pie-chart"></i> Módulo de Inversionistas y Capital Social</h3>
+                    <button class="btn btn-primary" onclick="abrirModalInversionista()"><i data-lucide="user-plus"></i> Nuevo Inversionista</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tabla-inversionistas-main">
+                        <thead>
+                            <tr>
+                                <th>Inversionista</th>
+                                <th>Capital Aportado (RD$)</th>
+                                <th>% Participación</th>
+                                <th>Retorno Est. Lote (RD$)</th>
+                                <th>Estatus Retorno</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td contenteditable="true"><strong>Juan Mercado</strong></td>
+                                <td contenteditable="true" onblur="recalcularMóduloInversionistas()">$27,000.00</td>
+                                <td contenteditable="true">73%</td>
+                                <td style="font-weight:800; color:var(--green-success);">$6,796.82</td>
+                                <td><span class="badge badge-success">Activo</span></td>
+                                <td><button class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i data-lucide="trash-2"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td contenteditable="true"><strong>Henrry Jorge</strong></td>
+                                <td contenteditable="true" onblur="recalcularMóduloInversionistas()">$10,000.00</td>
+                                <td contenteditable="true">27%</td>
+                                <td style="font-weight:800; color:var(--green-success);">$2,517.34</td>
+                                <td><span class="badge badge-success">Activo</span></td>
+                                <td><button class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i data-lucide="trash-2"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top:20px; background:#fffdfa; border:1px solid var(--border-color); padding:18px; border-radius:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:700; color:var(--mabi-brown);">Capital Total Invertido:</span>
+                        <strong id="total-cap-inv" style="font-size:1.2rem; color:var(--blue-accent);">$37,000.00</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. INSUMOS -->
+        <section id="tab-inventario" class="tab-content">
+            <div class="card-box">
+                <div class="card-header">
+                    <h3 class="card-title"><i data-lucide="package"></i> Registro de Insumos y Compras con Abonos</h3>
+                    <button class="btn btn-dark" onclick="abrirModalInsumo()"><i data-lucide="plus"></i> Nuevo Insumo</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tabla-insumos">
+                        <thead>
+                            <tr>
+                                <th>Artículo / Insumo</th>
+                                <th>Proveedor</th>
+                                <th>Fecha</th>
+                                <th>Costo Total</th>
+                                <th>Monto Abonado</th>
+                                <th>Saldo Restante (CxP)</th>
+                                <th>Método Pago</th>
+                                <th>Estatus</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr oninput="actualizarCálculosFila(this)">
+                                <td contenteditable="true"><strong>Saco de Azúcar (125 Lb)</strong></td>
+                                <td contenteditable="true">Surtidora C/16 de Agosto</td>
+                                <td contenteditable="true">05/08/2026</td>
+                                <td contenteditable="true" class="val-costo">3950.00</td>
+                                <td contenteditable="true" class="val-abono">1000.00</td>
+                                <td class="val-restante" style="font-weight:800; color:var(--red-danger);">2950.00</td>
+                                <td>
+                                    <select class="select-pay">
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Tarjeta">Tarjeta</option>
+                                        <option value="A Crédito" selected>A Crédito</option>
+                                    </select>
+                                </td>
+                                <td><span class="badge badge-warning">Abonado</span></td>
+                                <td><button class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i data-lucide="trash-2"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. BD VENTAS Y FACTURAS -->
+        <section id="tab-ventas" class="tab-content">
+            <div class="card-box">
+                <div class="card-header">
+                    <h3 class="card-title"><i data-lucide="receipt"></i> Base de Datos de Ventas y Abonos</h3>
+                    <button class="btn btn-dark" onclick="abrirModalVenta()"><i data-lucide="plus"></i> Registrar Venta</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tabla-ventas">
+                        <thead>
+                            <tr>
+                                <th>No. Factura</th>
+                                <th>Fecha</th>
+                                <th>Cliente / Colmado</th>
+                                <th>Huacales</th>
+                                <th>Total Facturado</th>
+                                <th>Monto Abonado</th>
+                                <th>Saldo Pendiente (CxC)</th>
+                                <th>Método Pago</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr oninput="actualizarCálculosFila(this)">
+                                <td contenteditable="true">MC-1001</td>
+                                <td contenteditable="true">16/08/2026</td>
+                                <td contenteditable="true">Colmado La Esperanza</td>
+                                <td contenteditable="true">5</td>
+                                <td contenteditable="true" class="val-costo">2000.00</td>
+                                <td contenteditable="true" class="val-abono">500.00</td>
+                                <td class="val-restante" style="font-weight:800; color:var(--red-danger);">1500.00</td>
+                                <td>
+                                    <select class="select-pay">
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Tarjeta">Tarjeta</option>
+                                        <option value="A Crédito" selected>A Crédito</option>
+                                    </select>
+                                </td>
+                                <td><span class="badge badge-warning">Abonado</span></td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" onclick="reimprimirFactura(this)"><i data-lucide="printer"></i> Imprimir</button>
+                                    <button class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i data-lucide="trash-2"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. BD CLIENTES -->
+        <section id="tab-clientes" class="tab-content">
+            <div class="card-box">
+                <div class="card-header">
+                    <h3 class="card-title"><i data-lucide="users"></i> Directiorio y Balance de Clientes</h3>
+                    <button class="btn btn-primary" onclick="abrirModalCliente()"><i data-lucide="user-plus"></i> Nuevo Cliente</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tabla-clientes">
+                        <thead>
+                            <tr>
+                                <th>Nombre / Colmado</th>
+                                <th>Contacto</th>
+                                <th>Teléfono</th>
+                                <th>Dirección / Zona</th>
+                                <th>Balance Pendiente Total</th>
+                                <th>Límite Crédito</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td contenteditable="true">Colmado La Esperanza</td>
+                                <td contenteditable="true">Ramón Pérez</td>
+                                <td contenteditable="true">809-555-0123</td>
+                                <td contenteditable="true">Gurabo, Santiago</td>
+                                <td contenteditable="true" style="font-weight:800; color:var(--red-danger);">RD$ 1,500.00</td>
+                                <td contenteditable="true">RD$ 5,000.00</td>
+                                <td><button class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i data-lucide="trash-2"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. BD EMPLEADOS -->
+        <section id="tab-empleados" class="tab-content">
+            <div class="card-box">
+                <div class="card-header">
+                    <h3 class="card-title"><i data-lucide="briefcase"></i> Base de Datos de Empleados</h3>
+                    <button class="btn btn-dark" onclick="abrirModalEmpleado()"><i data-lucide="plus"></i> Nuevo Empleado</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tabla-empleados">
+                        <thead>
+                            <tr>
+                                <th>Nombre Completo</th>
+                                <th>Cargo / Función</th>
+                                <th>Teléfono</th>
+                                <th>Pago por Tanda (RD$)</th>
+                                <th>Estatus</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td contenteditable="true">José Luis Almanzar</td>
+                                <td contenteditable="true">Operador Fermentación</td>
+                                <td contenteditable="true">829-555-4321</td>
+                                <td contenteditable="true">500.00</td>
+                                <td><span class="badge badge-success">Activo</span></td>
+                                <td><button class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i data-lucide="trash-2"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- VENTANA EMERGENTE ESTILIZADA -->
+    <div id="modal-container" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h4 id="modal-title" class="modal-title">Nuevo Registro</h4>
+                <button class="btn-close-modal" onclick="cerrarModal()">✕</button>
+            </div>
+            <div id="modal-body">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN API DE AUTENTICACIÓN GOOGLE APPS SCRIPT
+        const WEB_APP_USUARIOS_URL = 'https://script.google.com/macros/s/AKfycbynztTBBhJ9B7viJElwHiNNHhptHNwZmlBsYVqVYJM3BtdRizUNLh-DLK9uyeS5oO6A/exec';
+        const ADMIN_USER_MASTER = 'admin';
+        const ADMIN_PASS_MASTER = 'adminjymmerk2';
+
+        let usuarioEnCambioPass = '';
+
+        /* LÓGICA Y MANEJO DE SESIÓN / LOGIN */
+        function alternarFormulario(tipo) {
+            const loginForm = document.getElementById('login-form');
+            const regForm = document.getElementById('register-form');
+            const recForm = document.getElementById('recovery-form');
+            const changeForm = document.getElementById('change-pass-form');
+            const title = document.getElementById('form-title');
+            const msgDiv = document.getElementById('login-msg');
+            msgDiv.style.display = 'none';
+
+            loginForm.style.display = 'none';
+            regForm.style.display = 'none';
+            recForm.style.display = 'none';
+            changeForm.style.display = 'none';
+
+            if (tipo === 'REGISTRO') {
+                regForm.style.display = 'block';
+                title.innerText = 'Solicitar Registro';
+            } else if (tipo === 'RECUPERAR') {
+                recForm.style.display = 'block';
+                title.innerText = 'Recuperar Acceso';
+            } else if (tipo === 'CAMBIAR') {
+                changeForm.style.display = 'block';
+                title.innerText = 'Definir Nueva Clave';
+            } else {
+                loginForm.style.display = 'block';
+                title.innerText = 'Mabí Cibao - Control Operativo';
+            }
+        }
+
+        async function procesarAuth(event, accion) {
+            event.preventDefault();
+            const msgDiv = document.getElementById('login-msg');
+            msgDiv.style.display = 'block';
+            msgDiv.className = 'login-msg';
+            msgDiv.innerText = 'Verificando con el servidor...';
+
+            let user = '', pass = '', correo = '';
+
+            if (accion === 'LOGIN') {
+                user = document.getElementById('login-user').value.trim();
+                pass = document.getElementById('login-pass').value.trim();
+
+                if (user.toLowerCase() === ADMIN_USER_MASTER.toLowerCase() && pass === ADMIN_PASS_MASTER) {
+                    sessionStorage.setItem('authenticated_user', user);
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.body.classList.remove('not-authenticated');
+                    msgDiv.style.display = 'none';
+                    inicializarSistema();
+                    return;
+                }
+            } else if (accion === 'REGISTRO') {
+                user = document.getElementById('reg-user').value.trim();
+                pass = document.getElementById('reg-pass').value.trim();
+                const passConfirm = document.getElementById('reg-pass-confirm').value.trim();
+                const regEmailEl = document.getElementById('reg-email');
+                correo = regEmailEl ? regEmailEl.value.trim() : '';
+
+                if (pass !== passConfirm) {
+                    msgDiv.className = 'login-msg error';
+                    msgDiv.innerText = 'Las contraseñas no coinciden. Por favor verifique.';
+                    return;
+                }
+            } else if (accion === 'RECUPERAR') {
+                user = document.getElementById('rec-user').value.trim();
+                const recEmailEl = document.getElementById('rec-email');
+                correo = recEmailEl ? recEmailEl.value.trim() : '';
+            } else if (accion === 'CAMBIAR_PASS') {
+                user = usuarioEnCambioPass;
+                pass = document.getElementById('new-pass').value.trim();
+                const newPassConfirm = document.getElementById('new-pass-confirm').value.trim();
+
+                if (pass !== newPassConfirm) {
+                    msgDiv.className = 'login-msg error';
+                    msgDiv.innerText = 'Las nuevas contraseñas no coinciden.';
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch(WEB_APP_USUARIOS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ accion: accion, usuario: user, password: pass, correo: correo })
+                });
+
+                const res = await response.json();
+
+                if (res.status === 'SUCCESS') {
+                    if (accion === 'LOGIN' || accion === 'CAMBIAR_PASS') {
+                        sessionStorage.setItem('authenticated_user', user);
+                        document.getElementById('login-overlay').style.display = 'none';
+                        document.body.classList.remove('not-authenticated');
+                        msgDiv.style.display = 'none';
+                        inicializarSistema();
+                    } else {
+                        msgDiv.className = 'login-msg success';
+                        msgDiv.innerText = res.message;
+                        if (accion === 'REGISTRO') document.getElementById('register-form').reset();
+                        if (accion === 'RECUPERAR') document.getElementById('recovery-form').reset();
+                    }
+                } else if (res.status === 'NEED_NEW_PASS') {
+                    usuarioEnCambioPass = user;
+                    alternarFormulario('CAMBIAR');
+                    msgDiv.className = 'login-msg success';
+                    msgDiv.style.display = 'block';
+                    msgDiv.innerText = res.message;
+                } else {
+                    msgDiv.className = 'login-msg error';
+                    msgDiv.innerText = res.message || 'Error en la solicitud';
+                }
+            } catch (err) {
+                msgDiv.className = 'login-msg error';
+                msgDiv.innerText = 'Error al conectar con la base de datos de usuarios.';
+            }
+        }
+
+        function cerrarSesion() {
+            sessionStorage.removeItem('authenticated_user');
+            location.reload();
+        }
+
+        function verificarAutenticacion() {
+            const authUser = sessionStorage.getItem('authenticated_user');
+            if (authUser) {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.body.classList.remove('not-authenticated');
+                inicializarSistema();
+            }
+        }
+
+        /* LÓGICA OPERATIVA Y NAVEGACIÓN DE PESTAÑAS */
+        function initIcons() {
+            if (window.lucide && typeof lucide.createIcons === 'function') {
+                lucide.createIcons();
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById('mainNav').classList.toggle('open');
+        }
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+
+            document.getElementById('tab-' + tabId).classList.add('active');
+            if (element) element.classList.add('active');
+
+            document.getElementById('mainNav').classList.remove('open');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function aplicarFiltros() {
+            const yr = document.getElementById('flt-year').value;
+            const q = document.getElementById('flt-trimestre').value;
+            const m = document.getElementById('flt-mes').value;
+            const w = document.getElementById('flt-semana').value;
+
+            document.getElementById('lbl-anual').innerText = 'Año ' + yr;
+            document.getElementById('lbl-trimestre').innerText = q === 'ALL' ? 'Todos los Trimestres' : q;
+            document.getElementById('lbl-mes').innerText = m === 'ALL' ? 'Todos los Meses' : 'Mes ' + m;
+            document.getElementById('lbl-semana').innerText = w === 'ALL' ? 'Todas las Semanas' : w;
+
+            let factorQ = q !== 'ALL' ? 0.8 : 1.0;
+            let factorM = m !== 'ALL' ? 0.4 : 1.0;
+            let factorW = w !== 'ALL' ? 0.25 : 1.0;
+
+            const ganBase = 31047.22;
+            document.getElementById('kpi-trimestral').innerText = 'RD$ ' + (ganBase * factorQ * 1.5).toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('kpi-mensual').innerText = 'RD$ ' + (ganBase * factorM).toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('kpi-semanal').innerText = 'RD$ ' + (15523.61 * factorW).toLocaleString('en-US', {minimumFractionDigits: 2});
+        }
+
+        function calcularHuacalesDesdeAzucar() {
+            const lbs = parseFloat(document.getElementById('inp-lbs-azucar').value) || 0;
+            const factor = parseFloat(document.getElementById('inp-factor-lbs').value) || 3.0;
+
+            const huacalesCalculados = lbs / factor;
+            const botellasCalculadas = huacalesCalculados * 24;
+
+            document.getElementById('res-huacales-calc').innerText = huacalesCalculados.toFixed(2) + ' Huacales';
+            document.getElementById('res-botellas-calc').innerText = botellasCalculadas.toLocaleString('en-US', {maximumFractionDigits: 0}) + ' Botellas Totales';
+
+            calcularVentas();
+        }
+
+        function calcularVentas() {
+            const azucar = parseFloat(document.getElementById('inp-azucar').value) || 0;
+            const combustible = parseFloat(document.getElementById('inp-combustible').value) || 0;
+            
+            const lbs = parseFloat(document.getElementById('inp-lbs-azucar').value) || 0;
+            const factor = parseFloat(document.getElementById('inp-factor-lbs').value) || 3.0;
+            const cantHuacales = lbs / factor || 1;
+
+            const precioHuacal = parseFloat(document.getElementById('inp-precio-huacal').value) || 0;
+            const pagoEmpleados = parseFloat(document.getElementById('inp-empleados').value) || 0;
+
+            const costoPreparacion = azucar + combustible;
+            const ventaTotalTanda = cantHuacales * precioHuacal;
+            const gananciaLimpia = ventaTotalTanda - costoPreparacion - pagoEmpleados;
+
+            document.getElementById('res-venta-tanda').innerText = '$' + ventaTotalTanda.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('res-fondo-reinicie').innerText = '$' + costoPreparacion.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('res-ganancia-limpia').innerText = '$' + gananciaLimpia.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            const pMabi = (parseFloat(document.getElementById('pct-mabi').innerText.replace('%','')) || 40) / 100;
+            const pS1 = (parseFloat(document.getElementById('pct-socio1').innerText.replace('%','')) || 30) / 100;
+            const pS2 = (parseFloat(document.getElementById('pct-socio2').innerText.replace('%','')) || 30) / 100;
+
+            document.getElementById('split-mabi').innerText = '$' + (gananciaLimpia * pMabi).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('split-socio1').innerText = '$' + (gananciaLimpia * pS1).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('split-socio2').innerText = '$' + (gananciaLimpia * pS2).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function actualizarCálculosFila(tr) {
+            const celdaCosto = tr.querySelector('.val-costo');
+            const celdaAbono = tr.querySelector('.val-abono');
+            const celdaRestante = tr.querySelector('.val-restante');
+            const celdaEstatus = tr.querySelector('.badge');
+
+            if (celdaCosto && celdaAbono && celdaRestante) {
+                const costo = parseFloat(celdaCosto.innerText.replace('$', '').replace(',', '')) || 0;
+                const abono = parseFloat(celdaAbono.innerText.replace('$', '').replace(',', '')) || 0;
+                const restante = Math.max(0, costo - abono);
+
+                celdaRestante.innerText = restante.toFixed(2);
+
+                if (celdaEstatus) {
+                    if (restante <= 0) {
+                        celdaEstatus.className = 'badge badge-success';
+                        celdaEstatus.innerText = 'Pagado';
+                    } else if (abono > 0) {
+                        celdaEstatus.className = 'badge badge-warning';
+                        celdaEstatus.innerText = 'Abonado';
+                    } else {
+                        celdaEstatus.className = 'badge badge-danger';
+                        celdaEstatus.innerText = 'Pendiente';
+                    }
+                }
+            }
+            recalcularTotalesCxCyCxP();
+        }
+
+        function recalcularTotalesCxCyCxP() {
+            let totalCxC = 0;
+            document.querySelectorAll('#tabla-ventas tbody .val-restante').forEach(td => {
+                totalCxC += parseFloat(td.innerText) || 0;
+            });
+            document.getElementById('kpi-cxc').innerText = 'RD$ ' + totalCxC.toLocaleString('en-US', {minimumFractionDigits: 2});
+
+            let totalCxP = 0;
+            document.querySelectorAll('#tabla-insumos tbody .val-restante').forEach(td => {
+                totalCxP += parseFloat(td.innerText) || 0;
+            });
+            document.getElementById('kpi-cxp').innerText = 'RD$ ' + totalCxP.toLocaleString('en-US', {minimumFractionDigits: 2});
+        }
+
+        function recalcularMóduloInversionistas() {
+            const filas = document.querySelectorAll('#tabla-inversionistas-main tbody tr');
+            let total = 0;
+            filas.forEach(tr => {
+                const celdaVal = tr.querySelectorAll('td')[1].innerText.replace('$', '').replace(',', '');
+                total += parseFloat(celdaVal) || 0;
+            });
+            document.getElementById('total-cap-inv').innerText = '$' + total.toLocaleString('en-US', {minimumFractionDigits: 2});
+        }
+
+        function eliminarFila(btn) {
+            if (confirm("¿Seguro de eliminar este registro?")) {
+                const tr = btn.closest('tr');
+                tr.remove();
+                recalcularTotalesCxCyCxP();
+            }
+        }
+
+        /* MANEJO DE MODALES */
+        function abrirModal(titulo, htmlForm) {
+            document.getElementById('modal-title').innerText = titulo;
+            document.getElementById('modal-body').innerHTML = htmlForm;
+            document.getElementById('modal-container').classList.add('active');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-container').classList.remove('active');
+        }
+
+        function abrirModalInversionista() {
+            const form = `
+                <div class="form-group"><label>Nombre del Inversionista:</label><input type="text" id="m-inv-nombre" class="form-control" placeholder="Ej: Pedro Martínez"></div>
+                <div class="row-2">
+                    <div class="form-group"><label>Capital Aportado (RD$):</label><input type="number" id="m-inv-cap" class="form-control" value="5000"></div>
+                    <div class="form-group"><label>% Participación:</label><input type="text" id="m-inv-pct" class="form-control" value="10%"></div>
+                </div>
+                <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="guardarInversionistaModal()">Guardar Inversionista</button>
+            `;
+            abrirModal('Registrar Nuevo Inversionista', form);
+        }
+
+        function guardarInversionistaModal() {
+            const nom = document.getElementById('m-inv-nombre').value.trim() || 'Inversionista';
+            const cap = parseFloat(document.getElementById('m-inv-cap').value) || 0;
+            const pct = document.getElementById('m-inv-pct').value || '0%';
+
+            const tbody = document.querySelector('#tabla-inversionistas-main tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td contenteditable="true"><strong>${nom}</strong></td>
+                <td contenteditable="true" onblur="recalcularMóduloInversionistas()">$${cap.toFixed(2)}</td>
+                <td contenteditable="true">${pct}</td>
+                <td style="font-weight:800; color:var(--green-success);">$0.00</td>
+                <td><span class="badge badge-success">Activo</span></td>
+                <td><button class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i data-lucide="trash-2"></i></button></td>
+            `;
+            tbody.prepend(tr);
+            recalcularMóduloInversionistas();
+            cerrarModal();
+            initIcons();
+        }
+
+        function abrirModalInsumo() {
+            const form = `
+                <div class="form-group"><label>Artículo / Insumo:</label><input type="text" id="m-insumo" class="form-control" placeholder="Ej: Saco de Azúcar"></div>
+                <div class="form-group"><label>Proveedor:</label><input type="text" id="m-proveedor" class="form-control" placeholder="Ej: Surtidora C/16"></div>
+                <div class="row-2">
+                    <div class="form-group"><label>Costo Total (RD$):</label><input type="number" id="m-costo" class="form-control" value="0"></div>
+                    <div class="form-group"><label>Monto Abonado (RD$):</label><input type="number" id="m-abono" class="form-control" value="0"></div>
+                </div>
+                <div class="form-group"><label>Método de Pago:</label>
+                    <select id="m-metodo" class="form-control">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta</option>
+                        <option value="A Crédito" selected>A Crédito</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="guardarInsumoModal()">Guardar Insumo</button>
+            `;
+            abrirModal('Registrar Nuevo Insumo', form);
+        }
+
+        function guardarInsumoModal() {
+            const item = document.getElementById('m-insumo').value.trim() || 'Insumo';
+            const prov = document.getElementById('m-proveedor').value.trim() || '-';
+            const costo = parseFloat(document.getElementById('m-costo').value) || 0;
+            const abono = parseFloat(document.getElementById('m-abono').value) || 0;
+            const metodo = document.getElementById('m-metodo').value;
+
+            const resto = Math.max(0, costo - abono);
+            let badgeClass = resto <= 0 ? 'badge-success' : (abono > 0 ? 'badge-warning' : 'badge-danger');
+            let badgeText = resto <= 0 ? 'Comprado' : (abono > 0 ? 'Abonado' : 'Pendiente');
+
+            const tbody = document.querySelector('#tabla-insumos tbody');
+            const tr = document.createElement('tr');
+            tr.setAttribute('oninput', 'actualizarCálculosFila(this)');
+            tr.innerHTML = `
+                <td contenteditable="true"><strong>${item}</strong></td>
+                <td contenteditable="true">${prov}</td>
+                <td contenteditable="true">${new Date().toLocaleDateString()}</td>
+                <td contenteditable="true" class="val-costo">${costo.toFixed(2)}</td>
+                <td contenteditable="true" class="val-abono">${abono.toFixed(2)}</td>
+                <td class="val-restante" style="font-weight:800; color:var(--red-danger);">${resto.toFixed(2)}</td>
+                <td>
+                    <select class="select-pay">
+                        <option value="Efectivo" ${metodo === 'Efectivo' ? 'selected' : ''}>Efectivo</option>
+                        <option value="Tarjeta" ${metodo === 'Tarjeta' ? 'selected' : ''}>Tarjeta</option>
+                        <option value="A Crédito" ${metodo === 'A Crédito' ? 'selected' : ''}>A Crédito</option>
+                    </select>
+                </td>
+                <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                <td><button class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i data-lucide="trash-2"></i></button></td>
+            `;
+            tbody.prepend(tr);
+            recalcularTotalesCxCyCxP();
+            cerrarModal();
+            initIcons();
+        }
+
+        function abrirModalVenta() {
+            const form = `
+                <div class="form-group"><label>Cliente / Colmado:</label><input type="text" id="m-cliente" class="form-control" placeholder="Ej: Colmado La Esperanza"></div>
+                <div class="row-2">
+                    <div class="form-group"><label>Cantidad Huacales:</label><input type="number" id="m-cant" class="form-control" value="1"></div>
+                    <div class="form-group"><label>Total Facturado (RD$):</label><input type="number" id="m-total" class="form-control" value="400"></div>
+                </div>
+                <div class="form-group"><label>Monto Abonado (RD$):</label><input type="number" id="m-abono-venta" class="form-control" value="0"></div>
+                <div class="form-group"><label>Método de Pago:</label>
+                    <select id="m-metodo-venta" class="form-control">
+                        <option value="Efectivo" selected>Efectivo</option>
+                        <option value="Tarjeta">Tarjeta</option>
+                        <option value="A Crédito">A Crédito</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="guardarVentaModal()">Guardar Venta</button>
+            `;
+            abrirModal('Registrar Nueva Venta', form);
+        }
+
+        function guardarVentaModal() {
+            const cliente = document.getElementById('m-cliente').value.trim() || 'Cliente';
+            const huacales = document.getElementById('m-cant').value || '1';
+            const total = parseFloat(document.getElementById('m-total').value) || 0;
+            const abono = parseFloat(document.getElementById('m-abono-venta').value) || 0;
+            const metodo = document.getElementById('m-metodo-venta').value;
+            const numFact = 'MC-' + Math.floor(1000 + Math.random() * 9000);
+
+            const resto = Math.max(0, total - abono);
+            let badgeClass = resto <= 0 ? 'badge-success' : (abono > 0 ? 'badge-warning' : 'badge-danger');
+            let badgeText = resto <= 0 ? 'Pagado' : (abono > 0 ? 'Abonado' : 'Pendiente');
+
+            const tbody = document.querySelector('#tabla-ventas tbody');
+            const tr = document.createElement('tr');
+            tr.setAttribute('oninput', 'actualizarCálculosFila(this)');
+            tr.innerHTML = `
+                <td contenteditable="true">${numFact}</td>
+                <td contenteditable="true">${new Date().toLocaleDateString()}</td>
+                <td contenteditable="true">${cliente}</td>
+                <td contenteditable="true">${huacales}</td>
+                <td contenteditable="true" class="val-costo">${total.toFixed(2)}</td>
+                <td contenteditable="true" class="val-abono">${abono.toFixed(2)}</td>
+                <td class="val-restante" style="font-weight:800; color:var(--red-danger);">${resto.toFixed(2)}</td>
+                <td>
+                    <select class="select-pay">
+                        <option value="Efectivo" ${metodo === 'Efectivo' ? 'selected' : ''}>Efectivo</option>
+                        <option value="Tarjeta" ${metodo === 'Tarjeta' ? 'selected' : ''}>Tarjeta</option>
+                        <option value="A Crédito" ${metodo === 'A Crédito' ? 'selected' : ''}>A Crédito</option>
+                    </select>
+                </td>
+                <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                <td>
+                    <button class="btn btn-primary btn-sm" onclick="reimprimirFactura(this)"><i data-lucide="printer"></i> Imprimir</button>
+                    <button class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i data-lucide="trash-2"></i></button>
+                </td>
+            `;
+            tbody.prepend(tr);
+            recalcularTotalesCxCyCxP();
+            cerrarModal();
+            initIcons();
+        }
+
+        function abrirModalCliente() {
+            const form = `
+                <div class="form-group"><label>Nombre / Colmado:</label><input type="text" id="m-cli-nombre" class="form-control"></div>
+                <div class="form-group"><label>Teléfono:</label><input type="text" id="m-cli-tel" class="form-control"></div>
+                <div class="form-group"><label>Límite de Crédito (RD$):</label><input type="number" id="m-cli-lim" class="form-control" value="5000"></div>
+                <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="guardarClienteModal()">Guardar Cliente</button>
+            `;
+            abrirModal('Registrar Nuevo Cliente', form);
+        }
+
+        function guardarClienteModal() {
+            const nombre = document.getElementById('m-cli-nombre').value.trim() || 'Cliente';
+            const tel = document.getElementById('m-cli-tel').value.trim() || '-';
+            const lim = parseFloat(document.getElementById('m-cli-lim').value) || 0;
+
+            const tbody = document.querySelector('#tabla-clientes tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td contenteditable="true">${nombre}</td>
+                <td contenteditable="true">Contacto</td>
+                <td contenteditable="true">${tel}</td>
+                <td contenteditable="true">Santiago</td>
+                <td contenteditable="true" style="font-weight:800; color:var(--red-danger);">RD$ 0.00</td>
+                <td contenteditable="true">RD$ ${lim.toFixed(2)}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i data-lucide="trash-2"></i></button></td>
+            `;
+            tbody.prepend(tr);
+            cerrarModal();
+            initIcons();
+        }
+
+        function abrirModalEmpleado() {
+            const form = `
+                <div class="form-group"><label>Nombre Completo:</label><input type="text" id="m-emp-nombre" class="form-control"></div>
+                <div class="form-group"><label>Cargo / Función:</label><input type="text" id="m-emp-cargo" class="form-control" value="Operador"></div>
+                <div class="form-group"><label>Pago por Tanda (RD$):</label><input type="number" id="m-emp-pago" class="form-control" value="500"></div>
+                <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="guardarEmpleadoModal()">Guardar Empleado</button>
+            `;
+            abrirModal('Registrar Nuevo Empleado', form);
+        }
+
+        function guardarEmpleadoModal() {
+            const nombre = document.getElementById('m-emp-nombre').value.trim() || 'Empleado';
+            const cargo = document.getElementById('m-emp-cargo').value.trim() || 'Operador';
+            const pago = parseFloat(document.getElementById('m-emp-pago').value) || 0;
+
+            const tbody = document.querySelector('#tabla-empleados tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td contenteditable="true">${nombre}</td>
+                <td contenteditable="true">${cargo}</td>
+                <td contenteditable="true">809-000-0000</td>
+                <td contenteditable="true">${pago.toFixed(2)}</td>
+                <td><span class="badge badge-success">Activo</span></td>
+                <td><button class="btn btn-danger btn-sm" onclick="eliminarFila(this)"><i data-lucide="trash-2"></i></button></td>
+            `;
+            tbody.prepend(tr);
+            cerrarModal();
+            initIcons();
+        }
+
+        function reimprimirFactura(btn) {
+            const tr = btn.closest('tr');
+            const cols = tr.querySelectorAll('td');
+            const numFact = cols[0].innerText;
+            const fecha = cols[1].innerText;
+            const cliente = cols[2].innerText;
+            const cant = cols[3].innerText;
+            const total = cols[4].innerText;
+            const abono = cols[5].innerText;
+            const resto = cols[6].innerText;
+            const metodoPago = tr.querySelector('.select-pay').value;
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head>
+                    <title>Factura ${numFact}</title>
+                    <style>
+                        body { font-family: sans-serif; padding: 25px; color: #333; }
+                        h2 { color: #451a03; margin-bottom: 5px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                        th { background: #fdfaf5; }
+                        .totales { margin-top: 15px; text-align: right; line-height: 1.6; }
+                    </style>
+                </head>
+                <body>
+                    <h2>MABÍ CIBAO (M&M)</h2>
+                    <p>Factura: <strong>${numFact}</strong> | Fecha: ${fecha}</p>
+                    <p><strong>Cliente:</strong> ${cliente}</p>
+                    <p><strong>Método de Pago:</strong> ${metodoPago}</p>
+                    <table>
+                        <thead><tr><th>Descripción</th><th>Cantidad</th><th>Total Facturado</th></tr></thead>
+                        <tbody><tr><td>Huacal Mabí Artesanal</td><td>${cant}</td><td>RD$ ${total}</td></tr></tbody>
+                    </table>
+                    <div class="totales">
+                        <div><strong>Total:</strong> RD$ ${total}</div>
+                        <div><strong>Abonado:</strong> RD$ ${abono}</div>
+                        <div style="color:#dc2626;"><strong>Saldo Pendiente:</strong> RD$ ${resto}</div>
+                    </div>
+                </body>
+                </html>
+            `);
+            win.document.close();
+            win.print();
+        }
+
+        function renderGrafico() {
+            const ctx = document.getElementById('chartGanancias');
+            if (!ctx) return;
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Mabí Cibao (40%)', 'Jorge Muñoz (30%)', 'Mercado Rosa (30%)'],
+                    datasets: [{
+                        data: [4647.20, 3485.40, 3485.40],
+                        backgroundColor: ['#d97706', '#451a03', '#16a34a']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function inicializarSistema() {
+            initIcons();
+            calcularHuacalesDesdeAzucar();
+            renderGrafico();
+            recalcularTotalesCxCyCxP();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            verificarAutenticacion();
+        });
+    </script>
+</body>
+</html>
